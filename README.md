@@ -54,7 +54,7 @@ script 分析
 
 ## index.ts
 
-```js
+```ts
 import { StatusBarAlignment, window } from 'vscode'
 
 export function activate() {
@@ -70,15 +70,214 @@ export function deactivate() {
 }
 ```
 
-
 ### openInGitHub.openProject
 
 Edge 浏览器可以翻译成中文。
 [VSCode](https://marketplace.visualstudio.com/VSCode)
 [vscode api](https://code.visualstudio.com/api)
 
+```json
+{
+  "extensionPack": [
+    "fabiospampinato.vscode-open-in-github"
+  ],
+}
+```
+
+我们来看这个插件，[vscode-open-in-github](https://github.com/fabiospampinato/vscode-open-in-github.git)。
+
+>open-on
+![打开项目 github](./images/opening-the-project.gif)
+
+![打开项目 github](./images/opening-the-file.gif)
+
+**Contributing**
+
+If you found a problem, or have a feature request, please open an [issue](https://github.com/fabiospampinato/vscode-open-in-github/issues) about it.
+
+If you want to make a pull request you can debug the extension using [Debug Launcher](https://marketplace.visualstudio.com/items?itemName=fabiospampinato.vscode-debug-launcher).
+
+调试，安装作者推荐的调试工具 `Debug Launcher`。
+
+![Debug Launcher auto 调试](./images/debuger-launcher-auto.gif)
+
+## package.json
+
+```json
+{
+  "main": "out/extension.js",
+}
+```
+
+## 调试项目
+
+克隆项目，然后安装依赖
+
+```bash
+npm install
+# 或者
+# npm i -g yarn
+yarn install
+# 或者
+# npm i -g pnpm
+pnpm install
+```
+
+选中，`"main": "out/extension.js"`，按 `ctrl + shift + p`。输入选择 `debug launcher auto` 即可调试。
+
+`webpack.config.js` 配置
+
+```ts
+const config = {
+  target: 'node',
+  entry: './src/extension.ts',
+}
+```
+
+## 入口 src/extension.ts
+
+```ts
+
+/* IMPORT */
+
+import Utils from './utils';
+
+/* ACTIVATE */
+
+const activate = Utils.initCommands;
+
+/* EXPORT */
+
+export {activate};
+
+```
+
+### Utils
+
+```ts
+
+/* IMPORT */
+
+import * as _ from 'lodash';
+import * as absolute from 'absolute';
+import * as findUp from 'find-up';
+import * as path from 'path';
+import * as pify from 'pify';
+import * as simpleGit from 'simple-git';
+import * as vscode from 'vscode';
+import * as Commands from './commands';
+import Config from './config';
+
+/* UTILS */
+
+const Utils = {
+
+  initCommands ( context: vscode.ExtensionContext ) {
+
+    const {commands} = vscode.extensions.getExtension ( 'fabiospampinato.vscode-open-in-github' ).packageJSON.contributes;
+
+    commands.forEach ( ({ command, title }) => {
+
+      const commandName = _.last ( command.split ( '.' ) ) as string,
+            handler = Commands[commandName],
+            disposable = vscode.commands.registerCommand ( command, () => handler () );
+
+      context.subscriptions.push ( disposable );
+
+    });
+
+    return Commands;
+
+  },
+}
+```
+
+### Commands
+
+```ts
+// vscode-open-in-github/src/commands.ts
+/* IMPORT */
+
+import URL from './url';
+
+/* COMMANDS */
+
+function openProject () {
+
+  return URL.open ();
+
+}
+
+export { openProject };
+```
+
+### URL
+
+```ts
+
+/* IMPORT */
+
+import * as _ from 'lodash';
+import * as vscode from 'vscode';
+import Config from './config';
+import Utils from './utils';
+
+/* URL */
+
+const URL = {
+  async get ( file = false, permalink = false, page? ) {},
+  async copy ( file = false, permalink = false, page? ) {},
+  async open ( file = false, permalink = false, page? ) {
+
+    const url = await URL.get ( file, permalink, page );
+
+    vscode.env.openExternal ( vscode.Uri.parse ( url ) );
+
+  }
+}
+```
+
+#### URL.get 函数
+
+```ts
+const URL = {
+  async get ( file = false, permalink = false, page? ) {
+
+    const repopath = await Utils.repo.getPath ();
+
+    if ( !repopath ) return vscode.window.showErrorMessage ( 'You have to open a git project before being able to open it in GitHub' );
+
+    const git = Utils.repo.getGit ( repopath ),
+          repourl = await Utils.repo.getUrl ( git );
+
+    if ( !repourl ) return vscode.window.showErrorMessage ( 'Remote repository not found' );
+
+    const config = Config.get ();
+
+    let filePath = '',
+        branch = '',
+        lines = '',
+        hash = '';
+
+    // 省略 file 的逻辑
+
+    branch = encodeURIComponent ( branch );
+    filePath = encodeURIComponent ( filePath ).replace ( /%2F/g, '/' );
+
+    const url = _.compact ([ repourl, page, branch, hash, filePath, lines ]).join ( '/' );
+
+    return url;
+
+  },
+}
+```
 
 ## github actions
+
+一个开源项目，一般会有基础的 workflow。
+
+- ci 每次 git push 命令时自动执行 lint 和 test 等，保证校验通过。
+- release：每次检测到 git tag，就自动发一个包。
 
 ### ci
 
@@ -205,8 +404,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 ```
 
-[](secrets.GITHUB_TOKEN)
-
+[自动令牌身份验证 secrets.GITHUB_TOKEN](https://docs.github.com/zh/actions/security-guides/automatic-token-authentication)
 
 ### vitest
 
