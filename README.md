@@ -8,13 +8,42 @@
 
 ![vscode-open-in-github](./images/vscode-open-in-github.png)
 
+你应该有碰到这样的场景。自己公司项目 `gitlab` 或者 `github` 项目。想快速打开网页去做一些操作，但耗时很久。那么有了这个插件后就方便快速很多，直接在状态栏点击一下图标即可打开。
+
+安装插件 [open in github button](https://marketplace.visualstudio.com/items?itemName=antfu.open-in-github-button)，[github repo](https://github.com/antfu/vscode-open-in-github-button) 后，会安装上依赖的另外一个插件 [Open in GitHub](https://marketplace.visualstudio.com/items?itemName=fabiospampinato.vscode-open-in-github)，[github repo](https://github.com/fabiospampinato/vscode-open-in-github)。
+
+`Open in GitHub` 插件也提供了一些用户自定义配置。支持配置为自己的域名，比如 `gitlab`，配置好后就能打开相应的项目地址。
+
+可以全局设置 `@ext:fabiospampinato.vscode-open-in-github`。如下图所示：
+
+![扩展设置](./images/ext-setting.png)。
+
+也可以在项目中新增 `.vscode/setting.json` 配置。
+
+```json
+// setting.json
+{
+  "openInGitHub.github.domain": "github.com", // Custom GitHub domain
+  "openInGitHub.remote.name": "origin", // Name of the remote repository
+  "openInGitHub.remote.branch": "master", // Name of the remote branch
+  "openInGitHub.useLocalBranch": true, // Use the local branch instead of the fixed remote branch
+  "openInGitHub.useLocalRange": true, // Highlight the local selection range, if there's one
+  "openInGitHub.useLocalLine": false // Highlight the local line if there's no selection range
+}
+```
+
+除了包含打开项目的命令，还包含了其他很多命令，比如打开 `issue、action、pull request、release 等`，可以按快捷键：`ctrl + shift + p` 输入 `>open in github` 查看。
+
+本文主要来讲述它们的实现原理。
+
 学完本文，你将学到：
 
 ```sh
 1. 如何开发一个 VSCode 插件
 2. 学会开发开源项目的工作流是怎样的
-3. 学会 open in github button vscode 插件的原理是什么
-4. 学会 open in github vscode 插件原理
+3. 学会调试 VSCode 插件
+4. 学会 open in github button vscode 插件的原理是什么
+5. 学会 open in github vscode 插件原理
 ```
 
 ## 2. 环境准备
@@ -29,6 +58,8 @@ pnpm install
 cd vscode-open-in-github-button-analysis/vscode-open-in-github
 pnpm install
 ```
+
+[也可以 star 我的项目](https://github.com/lxchuan12/vscode-open-in-github-button-analysis.git)
 
 ## 3. vscode-open-in-github-button 项目
 
@@ -83,99 +114,29 @@ pnpm install
 
 #### 3.2.1 ci
 
+安装 pnpm ，使用 node 16.x，全局安装 ni 工具，执行 nci npm ci npm run lint
+有三个job：`lint`、`typecheck`、`test`。
+
+这块代码由于太长，有删减，[可点此查看完整代码](https://github.com/antfu/vscode-open-in-github-button/blob/main/.github/workflows/ci.yml)。
+
 ```yml
 # vscode-open-in-github-button/.github/workflows/ci.yml
 name: CI
-
-# main 分支 push 和 pr 会触发 
+# main 分支 push 和 pr 会触发
 on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
-#  安装 pnpm ，使用 node 16.x，全局安装 ni 工具，执行 nci npm ci npm run lint
 jobs:
   lint:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-
-      - name: Set node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: pnpm
-
-      - name: Setup
-        run: npm i -g @antfu/ni
-
-      - name: Install
-        run: nci
-
-      - name: Lint
-        run: nr lint
-
   typecheck:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-
-      - name: Set node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: pnpm
-
-      - name: Setup
-        run: npm i -g @antfu/ni
-
-      - name: Install
-        run: nci
-
-      - name: Typecheck
-        run: nr typecheck
-
   test:
     runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        node: [16.x]
-        os: [ubuntu-latest, windows-latest, macos-latest]
-      fail-fast: false
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-
-      - name: Set node version to ${{ matrix.node }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
-          cache: pnpm
-
-      - name: Setup
-        run: npm i -g @antfu/ni
-
-      - name: Install
-        run: nci
-
-      - name: Build
-        run: nr build
-
-      - name: Test
-        run: nr test
 ```
 
 #### 3.2.2 release 发布
