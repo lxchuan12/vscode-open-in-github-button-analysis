@@ -75,6 +75,7 @@ pnpm install
 - [vite](https://github.com/vitejs/vite)
 - [vitest](https://github.com/vitest-dev/vitest#readme)
 - [vscode 插件发布相关 vsce](https://github.com/microsoft/vscode-vsce)
+- [tsup ts 打包构建相关](https://github.com/egoist/tsup)
 
 `scripts` 分析
 
@@ -104,7 +105,7 @@ pnpm install
 
 ### 3.2 github actions
 
-看项目前，我们先来看下 github action 配置。
+看项目前，我们先来看下 `github actions` 配置。
 [了解 GitHub Actions](https://docs.github.com/zh/actions/learn-github-actions/understanding-github-actions)
 
 一个开源项目，一般会有基础的 workflow。
@@ -141,24 +142,20 @@ jobs:
 
 #### 3.2.2 release 发布
 
-git push tag 时触发，用 [changelogithub](https://github.com/antfu/changelogithub) 生成 changelog。
+git push tag 时触发，用 [changelogithub](https://github.com/antfu/changelogithub) 生成 `changelog`。
 
 [其中自动令牌身份验证 secrets.GITHUB_TOKEN](https://docs.github.com/zh/actions/security-guides/automatic-token-authentication)
 
 ```yml
 # vscode-open-in-github-button/.github/workflows/release.yml
-
 name: Release
-
 # 赋予 secrets.GITHUB_TOKEN 写内容的权限
 permissions:
   contents: write
-
 on:
   push:
     tags:
       - 'v*'
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -166,11 +163,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
-
       - run: npx changelogithub
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -519,14 +514,18 @@ async open ( file = false, permalink = false, page? ) {
 
 行文至此，最后，我们来总结下：
 
-通过学习一个状态栏 `github` 图标，即可在浏览器中打开仓库的 github 地址功能。
-open in github button vscode 插件的原理，是调用了 [vscode-open-in-github](https://github.com/fabiospampinato/vscode-open-in-github.git) 插件提供的 `openInGithub.openProject` 命令。
+通过学习一个状态栏 `github` 图标，即可在浏览器中打开仓库的 `github` 地址功能。
+[open in github button](https://github.com/antfu/vscode-open-in-github-button) vscode 插件的原理，是调用了 [vscode-open-in-github](https://github.com/fabiospampinato/vscode-open-in-github.git) 插件提供的 `openInGithub.openProject` 命令。
 
-我们学会了如何写一个插件。注册命令和执行 `node` 脚本，使用 `simple-git` 获取仓库 url 等。最终 `VSCode` 打开浏览器访问这个链接地址。
+而 `openInGithub.openProject` 命令是 `VSCode` 插件注册的和执行 `node` 脚本，使用 `simple-git` 获取仓库 `url` 等。最终 `VSCode` 打开浏览器访问这个链接地址。
+
 这种场景确实存在，但我们不一定会思考到用技术方案解决它。
-打开 `github` 仓库或者 `gitlab` 仓库的方式有挺多。比如终端工具 `gh browse`。或者在 package.json 配置仓库链接地址，再转到找到链接地址去打开。或者找到 `.git/config` 中的配置 `git` 链接打开。
 
-我们还学习了如何利用 `github actions` 等，做一个开源项目。
+打开 `github` 仓库或者 `gitlab` 仓库的方式有挺多。比如终端工具 `gh browse`。或者在 `package.json` 配置仓库链接地址，再转到找到链接地址去打开。或者找到 `.git/config` 中的配置 `git` 链接打开。
+
+我们还学习了如何利用 [GitHub Actions](https://docs.github.com/zh/actions/learn-github-actions/understanding-github-actions)，用 [tsup](https://github.com/egoist/tsup) 构建 `ts`，用 [bumpp](https://github.com/antfu/bumpp)提升版本号等，用 [changelogithub](https://github.com/antfu/changelogithub) 生成 `changelog` 等等，开发一个开源项目。
+
+我们学会了用 [vsce](https://github.com/microsoft/vscode-vsce) 如何打包、发布一个 `VSCode` 插件。
 [VSCode 详尽的发布插件官方文档](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 
 ---
