@@ -1,4 +1,4 @@
-# 从未想过 VSCode 还能这样直接打开仓库地址，这个插件原理揭秘~
+# 神器啊，从未想过 VSCode 还能这样直接打开仓库URL，原理揭秘~
 
 ## 1. 前言
 
@@ -523,9 +523,9 @@ async open ( file = false, permalink = false, page? ) {
 
 打开 `github` 仓库或者 `gitlab` 仓库的方式有挺多。比如终端工具 `gh browse`。或者在 `package.json` 配置仓库链接地址，再转到找到链接地址去打开。或者找到 `.git/config` 中的配置 `git` 链接打开。
 
-我们还学习了如何利用 [GitHub Actions](https://docs.github.com/zh/actions/learn-github-actions/understanding-github-actions)，用 [tsup](https://github.com/egoist/tsup) 构建 `ts`，用 [bumpp](https://github.com/antfu/bumpp)提升版本号等，用 [changelogithub](https://github.com/antfu/changelogithub) 生成 `changelog` 等等，开发一个开源项目。
+我们学会了如何利用 [GitHub Actions](https://docs.github.com/zh/actions/learn-github-actions/understanding-github-actions)，用 [tsup](https://github.com/egoist/tsup) 构建 `ts`，用 [bumpp](https://github.com/antfu/bumpp) 提升版本号等，用 [changelogithub](https://github.com/antfu/changelogithub) 生成 `changelog` 等等，开发一个开源项目。
 
-我们学会了用 [vsce](https://github.com/microsoft/vscode-vsce) 如何打包、发布一个 `VSCode` 插件。
+我们还学会了用 [vsce](https://github.com/microsoft/vscode-vsce) 如何打包、发布一个 `VSCode` 插件。学会了使用调试使用 [Debug Launcher](https://marketplace.visualstudio.com/items?itemName=fabiospampinato.vscode-debug-launcher) 自动化调试 `VSCode` 插件。
 [VSCode 详尽的发布插件官方文档](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 
 ---
